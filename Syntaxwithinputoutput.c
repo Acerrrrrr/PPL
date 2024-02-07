@@ -14,6 +14,8 @@ char* parseTerm(Token_Nodes** current);
 char* parseFactor(Token_Nodes** current);
 char* parseOutput(Token_Nodes** current);
 char* parseInput(Token_Nodes** current);
+char* parseIterative(Token_Nodes** current);
+char* parseControl(Token_Nodes** current);
 Token_Nodes* advance(Token_Nodes** current);
 
 
@@ -21,6 +23,7 @@ Token_Nodes* advance(Token_Nodes** current);
 char* parse(Token_Nodes** current){
     char* stmt;
 
+    int i = 1;
     printf("->PROGRAM\n");
     while ((*current) != NULL){
 
@@ -31,11 +34,13 @@ char* parse(Token_Nodes** current){
 }
 
 char* parseProgram(Token_Nodes** current){
+
     printf("--->STATEMENT\n--");
     return parseStatement(current);
 }
 
 char* parseStatement(Token_Nodes** current){
+
     char* stmt;
     Token_Nodes* lookAhead = advance(current);
 
@@ -53,13 +58,27 @@ char* parseStatement(Token_Nodes** current){
         return stmt;
     }
 
+    // Check for Control production rule
+    else if (!(strcmp(lookAhead->tokenType, "WHEN_KEYWORD"))) {
+        printf("--->CONTROL\n----");
+        stmt = parseControl(current);
+        return stmt;
+    }
+
+    // Check for Iterative production rule
+    else if (!(strcmp(lookAhead->tokenType, "DURING_KEYWORD"))) {
+        printf("--->ITERATIVE\n----");
+        stmt = parseIterative(current);
+        return stmt;
+    }
+
     // Check for Arithmetic or Assignment
     else if (!(strcmp(lookAhead->tokenType, "ADDITION_OPERATOR")) || !(strcmp(lookAhead->tokenType, "SUBTRACTION_OPERATOR")) || !(strcmp(lookAhead->tokenType, "MULTIPLICATION_OPERATOR"))
     || !(strcmp(lookAhead->tokenType, "DIVISION_OPERATOR")) || !(strcmp(lookAhead->tokenType, "EXPONENTIAL_OPERATOR")) || !(strcmp(lookAhead->tokenType, "MODULO_OPERATOR"))
     || !(strcmp(lookAhead->tokenType, "FLOOR_DIVISION_OPERATOR"))) {
         
         printf("--->ARITHMETIC\n----");
-        stmt = parseArithmetic(current);
+        stmt = (parseArithmetic(current));
         return stmt;
 
     }
@@ -69,12 +88,68 @@ char* parseStatement(Token_Nodes** current){
     || !(strcmp(lookAhead->tokenType, "MODULO_ASS_OP")) || !(strcmp(lookAhead->tokenType, "FLOOR_DIVISION_ASS_OP"))) {
 
         printf("--->ASSIGNMENT\n----");
-        stmt = parseAssignment(current);
+        stmt = (parseAssignment(current));
         return stmt;
     }
     
     return stmt;
 }
+
+char* parseIterative(Token_Nodes** current) {
+    char* stmt = malloc(100);
+
+    if (!(strcmp((*current)->tokenType, "DURING_KEYWORD"))) {
+        printf("--->PARSED %s: %s\n----", (*current)->tokenType, (*current)->tokenValue);
+        sprintf(stmt, "--->PARSED ITERATIVE STATEMENT: %s ", (*current)->tokenValue);
+
+        *current = advance(current);
+
+        if ((*current) != NULL && (!(strcmp((*current)->tokenType, "NEXT_KEYWORD")) || !(strcmp((*current)->tokenType, "ENOUGH_KEYWORD")))) {
+            printf("--->PARSED %s: %s\n----", (*current)->tokenType, (*current)->tokenValue);
+            sprintf(stmt + strlen(stmt),  " %s", (*current)->tokenValue);
+
+            *current = advance(current);
+        }
+        return stmt;
+    }
+
+    return NULL;
+}
+
+char* parseControl(Token_Nodes** current) {
+    char* stmt = malloc(100);
+
+    if (!(strcmp((*current)->tokenType, "WHEN_KEYWORD"))) {
+        printf("--->PARSED %s: %s\n----", (*current)->tokenType, (*current)->tokenValue);
+        sprintf(stmt, "--->PARSED CONTROL STATEMENT: %s ", (*current)->tokenValue);
+
+        *current = advance(current);
+
+        while ((*current) != NULL && !(strcmp((*current)->tokenType, "OTHERWISE_KEYWORD"))) {
+            printf("--->PARSED %s: %s\n----", (*current)->tokenType, (*current)->tokenValue);
+            *current = advance(current);
+
+            if ((*current) != NULL && !(strcmp((*current)->tokenType, "NEWLINE"))){
+                printf("--->PARSED %s: %s\n----", (*current)->tokenType, (*current)->tokenValue);
+                *current = advance(current);
+            }
+        }
+
+        if ((*current) != NULL && !(strcmp((*current)->tokenType, "OTHERWISE_KEYWORD"))) {
+            printf("--->PARSED %s: %s\n----", (*current)->tokenType, (*current)->tokenValue);
+            *current = advance(current);
+        }
+
+        if ((*current) != NULL && !(strcmp((*current)->tokenType, "UNLESS_KEYWORD"))) {
+            printf("--->PARSED %s: %s\n----", (*current)->tokenType, (*current)->tokenValue);
+            *current = advance(current);
+        }
+        return stmt;
+    }
+
+    return NULL;
+}
+
 
 char* parseArithmetic(Token_Nodes** current){
     char* stmt = malloc(100);
