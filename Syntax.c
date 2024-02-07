@@ -19,17 +19,18 @@ Token_Nodes* advance(Token_Nodes** current);
 Token_Nodes* current;
 
 char* parse(Token_Nodes** current){
+    char* stmt;
 
     int i = 1;
     printf("->PROGRAM\n");
-    while (*current != NULL){
+    while ((*current) != NULL){
 
-        printf("ITERATION [%d]\n", i++);
+        //printf("ITERATION [%d]\n", i++);
         
-        
-        printf(parseProgram(current));
+        printf("%s\n\n", parseProgram(current));
         //printf("---Last pointed to: %s %s\n\n", (*current)->tokenType, (*current)->tokenValue);
-        *current = advance(current);
+        //*current = advance(current);
+        
     }
 
     return ""; //parseProgram(&current);
@@ -51,7 +52,7 @@ char* parseStatement(Token_Nodes** current){
     || !(strcmp(lookAhead->tokenType, "DIVISION_OPERATOR")) || !(strcmp(lookAhead->tokenType, "EXPONENTIAL_OPERATOR")) || !(strcmp(lookAhead->tokenType, "MODULO_OPERATOR"))
     || !(strcmp(lookAhead->tokenType, "FLOOR_DIVISION_OPERATOR"))) {
         
-        printf("--->ARITHMETIC\n--");
+        printf("--->ARITHMETIC\n----");
         stmt = (parseArithmetic(current));
         return stmt;
 
@@ -66,21 +67,17 @@ char* parseStatement(Token_Nodes** current){
         return stmt;
     }
 
-    /*if ((stmt = parseAssignment(current))!= NULL){
-        printf("%s", stmt);
-        return stmt;
-    }*/
+
 
     
-    return "";
+    return stmt;
 }
 
 char* parseArithmetic(Token_Nodes** current){
     //Arithmetic Statment Grammar Rule:
     //<arithmetic> ::= <term> {("+" | "-") <term>}*
-    char* stmt;
-
-    printf("--PARSING ARITHMETIC STATEMENT\n");
+    char* stmt = malloc(100);
+    char* arithStmt;
 
 
 
@@ -91,38 +88,62 @@ char* parseArithmetic(Token_Nodes** current){
 
 
     //Check left token if it is <term>
-    printf("---->PARSING TERM: %s (%s)\n", (*current)->tokenType, (*current)->tokenValue);
-    if ((stmt = parseTerm(current)) != NULL){
+    printf("--->TERM\n------");
+    if ((arithStmt = parseTerm(current)) != NULL){
+        sprintf(stmt, arithStmt);
         
         //LookAhead to check  for '+' or '-' operator
-        Token_Nodes* lookAhead = advance(current);
+        //Token_Nodes* lookAhead = advance(current);
 
         //Check if next token is NULL
         //**Can change to while(?)
-        if (lookAhead->tokenType != NULL){
-            //printf("\nCurrently Pointing at: %s %s\n", lookAhead->tokenType, lookAhead->tokenValue);
-
+        //if (lookAhead->tokenType != NULL){
             //Lookahead to check if operator is ADDITION or SUBTRACTION
-            if (!(strcmp (lookAhead->tokenType, "ADDITION_OPERATOR")) || !(strcmp (lookAhead->tokenType, "SUBTRACTION_OPERATOR"))){
-                printf("PARSED OPERATOR: %s\n", lookAhead->tokenValue);
+            printf("--");
+        while (((*current)->tokenType) != NULL && strcmp((*current)->tokenType, "NEWLINE")){
+            //if ((strcmp(((*current)->tokenType), "NEWLINE"))){
+                if (!(strcmp ((*current)->tokenType, "ADDITION_OPERATOR")) || !(strcmp ((*current)->tokenType, "SUBTRACTION_OPERATOR"))){
+                    printf("----->PARSED %s: %s\n----", (*current)->tokenType,(*current)->tokenValue);
+                    sprintf(stmt + strlen(stmt), "%s ", (*current)->tokenValue);
+                    
+                    *current = advance(current);
+                    //printf("current %s %s\n\n", (*current)->tokenType, (*current)->tokenValue);
+                    //Check if current token is <term>
+                    printf("--->TERM\n------");
+                    //If not, return Syntax Error
+                    if ((arithStmt = parseTerm(current))){
+                        sprintf(stmt + strlen(stmt), arithStmt);
+                        
+                    }
+                    
+                    else{
+                        printf("SYNTAX ERROR: UNEXPECTED TOKEN TYPE: %s\n\n", (*current)->tokenType);
+                        *current = advance(current);
+                        return "";
+                    }
+                    
+                }
                 
-                *current = advance(&lookAhead);
-
-                //Check if current token is <term>
-                printf("\nCurrently Pointing at: %s %s\n", (*current)->tokenType, (*current)->tokenValue);
-                printf("--PARSING TERM\n");
-                //If not, return Syntax Error
-                if ((stmt = parseTerm(current)) != NULL){
-                    return "ARITHMETIC STATEMENT PARSED\n\n";
-                }
-
-                else{
-                    return "SYNTAX ERROR\n\n";
-                }
+            //}
             
+            if ((*current)->tokenType != NULL){
+                if (!(strcmp((*current)->tokenType, "CLOSED_PARENTHESIS"))){
+                    
+                    return stmt;
+                }
             }
+            
+            //printf("%s", (*current)->tokenType);
         }
 
+        
+        
+        
+        if ((*current) != NULL){
+            *current = advance(current);
+        }
+
+        printf("------->ARITHMETIC STATEMENT PARSED: ");
         return stmt;
         
     }
@@ -131,24 +152,27 @@ char* parseArithmetic(Token_Nodes** current){
 }
 
 char* parseTerm(Token_Nodes** current){
-    char* stmt;
+    char* stmt = malloc(100);
+    char* termStmt = malloc(100);
 
 
     //Check if current token is <factor>
-    printf("------>PARSING FACTOR: %s (%s)\n", (*current)->tokenType, (*current)->tokenValue);
-    if ((stmt = parseFactor(current)) != NULL){
+    printf("--->FACTOR\n--------");
+    if ((termStmt = parseFactor(current)) != NULL){
+        sprintf(stmt, "%s ", termStmt); 
+        
+        //printf("%s", (*current));
+        //Token_Nodes* lookAhead = advance(current);
+        //printf("\nCurrently Pointing at: %s %s\n", lookAhead->tokenType, lookAhead->tokenValue);
 
-        Token_Nodes* lookAhead = advance(current);
-        printf("\nCurrently Pointing at: %s %s\n", lookAhead->tokenType, lookAhead->tokenValue);
 
-
-        if (!(strcmp (lookAhead->tokenType, "MULTIPLICATION_OPERATOR")) || !(strcmp (lookAhead->tokenType, "DIVISION_OPERATOR"))){
+        /*while (!(strcmp ((*current)->tokenType, "MULTIPLICATION_OPERATOR")) || !(strcmp ((*current)->tokenType, "DIVISION_OPERATOR"))){
             //printf("PARSED OPERATOR: %s\n", lookAhead->tokenValue);
 
-            while (lookAhead != NULL){
-                printf("PARSED OPERATOR: %s\n", lookAhead->tokenValue);
+            //while (lookAhead != NULL){
+                printf("----->PARSED OPERATOR: %s\n", (*current)->tokenValue);
                 
-                *current = advance(&lookAhead);
+                *current = advance(current);
 
                 printf("\nCurrently Pointing at: %s %s\n", (*current)->tokenType, (*current)->tokenValue);
 
@@ -157,20 +181,50 @@ char* parseTerm(Token_Nodes** current){
                 }
 
                 
-                lookAhead = advance(current);
+                *current = advance(current);
                 /*if (lookAhead == NULL){
                     printf("%s", lookAhead->tokenType);
                     return "END";
                 }
-                //printf("\nCurrently Pointing at: %s\n", lookAhead->tokenType);*/
-        }
+                //printf("\nCurrently Pointing at: %s\n", lookAhead->tokenType);
+        //}
 
         return "ARITHMETIC STATEMENT PARSED\n\n";
-        }
+        }*/
         
+        while ((*current) != NULL){
+            
+            if (!(strcmp ((*current)->tokenType, "MULTIPLICATION_OPERATOR")) || !(strcmp ((*current)->tokenType, "DIVISION_OPERATOR"))
+            || !(strcmp ((*current)->tokenType, "EXPNOENTIATION_OPERATOR")) || !(strcmp ((*current)->tokenType, "MODULO_OPERATOR"))
+            || !(strcmp ((*current)->tokenType, "FLOOR_DIVISION_OPERATOR"))){
 
-        
-        return "";
+                printf("----->PARSED %s: %s\n----", (*current)->tokenType,(*current)->tokenValue);
+                sprintf(stmt + strlen(stmt), "%s ", (*current)->tokenValue);
+
+                *current = advance(current);
+                if ((termStmt = parseFactor(current))){
+                        sprintf(stmt + strlen(stmt), termStmt);
+                        
+                }
+
+                else{
+                        printf("SYNTAX ERROR: UNEXPECTED TOKEN TYPE: %s\n\n", (*current)->tokenType);
+                        *current = advance(current);
+                        return "";
+                }
+            }
+            
+            
+            else{
+                
+                return stmt;
+            }
+
+            
+        }
+
+        //printf("%s", (*current)->tokenType);
+        return stmt;
     }
 
     return NULL;
@@ -178,31 +232,64 @@ char* parseTerm(Token_Nodes** current){
 
 char* parseFactor(Token_Nodes** current){
 
-    char* stmt;
+    char* stmt = malloc(100);
+    char* factorStmt = malloc(100);
     if (!(strcmp((*current)->tokenType, "IDENTIFIER"))){
-        printf("-------->PARSED FACTOR: %s\n\n", (*current)->tokenValue);
+        printf("--->PARSED FACTOR: %s\n", (*current)->tokenValue);
+        sprintf(stmt, (*current)->tokenValue);
 
-        return "";
+        *current = advance(current);
+
+
+        return stmt;
     }
 
     else if (!(strcmp((*current)->tokenType, "NUMBER_LITERAL"))){
-        printf("-------->PARSED FACTOR: %s\n", (*current)->tokenValue);
+        printf("--->PARSED FACTOR: %s\n", (*current)->tokenValue);
+        sprintf(stmt, (*current)->tokenValue);
 
-        return "";
+        *current = advance(current);
+        //printf("%s", (*current)->tokenType);
+        
+
+        return stmt;
     }
 
     else if (!(strcmp((*current)->tokenType, "OPEN_PARENTHESIS"))){
-        Token_Nodes* lookAhead = advance(current);
         //printf("Currently Pointing at: %s %s\n", lookahead->tokenType, lookahead->tokenValue);
+        printf("--->PARSED %s\n----------", (*current)->tokenValue);
+        sprintf(stmt, (*current)->tokenValue);
 
-        while (strcmp((*current)->tokenType, "CLOSED_PARENTHESIS")){
-            if ((stmt = parseArithmetic(&lookAhead)) != NULL){
-                *current = advance(&lookAhead);
-            }
-        }
         
-        printf("PARSED CLOSED_PARENTHESIS\n\n");
-        return "";
+
+        *current = advance(current);
+
+        if ((factorStmt = parseArithmetic(current)) == NULL){
+            printf("SYNTAX ERROR: EXPECTED ARITHMETIC STATEMENT");
+            return "";
+        }
+        //printf("%s", factorStmt);
+
+        sprintf(stmt + strlen(stmt), "%s ", factorStmt);
+
+        
+
+        //*current = advance(current);
+
+        if ((strcmp((*current)->tokenType, "CLOSED_PARENTHESIS"))){
+            printf("SYNTAX ERROR: EXPECTED "")\"");
+            return "";
+        }
+
+        printf("--->PARSED %s\n", (*current)->tokenValue);
+        sprintf(stmt + strlen(stmt), "%s ", (*current)->tokenValue);
+
+        *current = advance(current);
+        
+        
+        
+        return stmt;
+        
     }
 
     /*else if (!((stmt = parseArithmetic(current)) == NULL)) {
@@ -247,6 +334,8 @@ char* parseAssignment(Token_Nodes** current){
             if (!(strcmp((*current)->tokenType, "IDENTIFIER"))){
                 printf("--->PARSED %s: %s\n------", (*current)->tokenType, (*current)->tokenValue);
                 sprintf(stmt + strlen(stmt),  " %s", (*current)->tokenValue);
+
+                *current = advance(current);
                 return stmt;
             }
 
@@ -254,6 +343,8 @@ char* parseAssignment(Token_Nodes** current){
             else if (!(strcmp((*current)->tokenType, "BOOLEAN"))){
                 printf("--->PARSED %s: %s\n------", (*current)->tokenType, (*current)->tokenValue);
                 sprintf(stmt + strlen(stmt),  " %s", (*current)->tokenValue);
+
+                *current = advance(current);
                 return stmt;
             }
 
@@ -284,6 +375,8 @@ char* parseAssignment(Token_Nodes** current){
             if (!(strcmp((*current)->tokenType, "IDENTIFIER"))){
                 printf("--->PARSED %s: %s\n------", (*current)->tokenType, (*current)->tokenValue);
                 sprintf(stmt + strlen(stmt),  " %s", (*current)->tokenValue);
+
+                *current = advance(current);
                 return stmt;
             }
 
@@ -291,6 +384,8 @@ char* parseAssignment(Token_Nodes** current){
             else if (!(strcmp((*current)->tokenType, "BOOLEAN"))){
                 printf("--->PARSED %s: %s\n------", (*current)->tokenType, (*current)->tokenValue);
                 sprintf(stmt + strlen(stmt),  " %s", (*current)->tokenValue);
+
+                *current = advance(current);
                 return stmt;
             }
 
@@ -320,8 +415,9 @@ int main (){
     current = head;
     //Token_Nodes *currentptr = &current;
 
-    printf("%s", parse(&current));
+    //printf("%s", parse(&current));
 
+    parse(&current);
     printf("\n\nEND");
 
     return 0;
