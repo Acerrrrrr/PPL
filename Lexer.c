@@ -51,7 +51,9 @@ bool isKeywordExtended(char *str) {
            isKeyword(str, "otherwise") ||
            isKeyword(str, "when") ||
            isKeyword(str, "lin") ||
-           isKeyword(str, "lout");
+           isKeyword(str, "del") ||
+           isKeyword(str, "lout") ||
+           isKeyword(str, "pass");
 }
 
 bool isReserveWord(char *str) {
